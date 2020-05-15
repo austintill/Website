@@ -1,0 +1,2 @@
+"0",""
+"0","renames %>% filter(MVP==""Michael Jordan"") %>% summarize(mean_PPG=mean(PPG), mean_Age=mean(Age))"

@@ -1,0 +1,3 @@
+"0",""
+"0","pca1<- renames%>%mutate(PC1=NBA_pca$scores[,1], PC2=NBA_pca$scores[,2])"
+"0","ggplot(pca1, aes(PC1, PC2, color=Age)) + geom_point()"

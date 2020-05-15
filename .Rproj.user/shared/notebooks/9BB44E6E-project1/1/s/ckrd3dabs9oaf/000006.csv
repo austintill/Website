@@ -1,0 +1,4 @@
+"0",""
+"0","renames <- With_Win_Pct %>% rename(""Team_PSG""=`Team PS/G`, "
+"0","                                   ""Team_PAG""=`Team PA/G`, ""Conference_Standing""=`Conference Standing`, ""FG_Pct""=`FG%`)"
+"0","renames %>% group_by(Team) %>% summarize(mean(MP), mean(PPG))"

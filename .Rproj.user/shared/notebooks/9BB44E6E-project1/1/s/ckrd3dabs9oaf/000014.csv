@@ -1,0 +1,4 @@
+"0",""
+"0","renames %>% summarize(sd_wins=sd(Wins), sd_losses=sd(Losses), "
+"0","              sd_TeamPSG=sd(Team_PSG), sd_TeamPAG=sd(Team_PAG),"
+"0","              sd_CS=sd(Conference_Standing))"

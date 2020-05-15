@@ -1,0 +1,5 @@
+"0","#Visualizing"
+"0","library(ggplot2)"
+"0","ggplot(data = renames, aes(x= Win_Pct, y = PPG, color = Conference_Standing)) +"
+"0","geom_point(size=3, alpha = .8) + ggtitle(""NBA Team Wins and Conference Standing with MVP Points Per Game"") + xlab(""Win Percentage"")  + "
+"0","ylab(""MVP Points Per Game"")"

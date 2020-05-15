@@ -1,0 +1,2 @@
+"0",""
+"0","renames %>% filter(Team==""LAL"") %>% summarize(mean(Wins), mean(Conference_Standing))"

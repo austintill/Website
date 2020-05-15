@@ -1,0 +1,7 @@
+"0","renames%>%select_if(is.numeric)%>%cor%>%as.data.frame%>%"
+"0","rownames_to_column%>%pivot_longer(-1)%>%"
+"0","ggplot(aes(rowname,name,fill=value))+geom_tile()+"
+"0","geom_text(aes(label=round(value,2)))+"
+"0","scale_fill_gradient(low = ""red"", high = ""blue"")+"
+"0","theme(axis.text.x = element_text(angle = 90, hjust = 1))+"
+"0","xlab("""")+ylab("""") + ggtitle(""Correlation Heat Map of Numeric Variables"")"

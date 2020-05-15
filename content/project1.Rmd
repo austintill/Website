@@ -1,0 +1,140 @@
+---
+title: "Exploratory Data Analysis with Tidyverse Tools"
+author: "Austin Till"
+date: '2020-05-14'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(readr)
+NBA <- read_csv("NBA.csv", col_types = cols(`Conference Standing` = col_number(), 
+    Losses = col_number(), `Team PA/G` = col_number(), 
+    `Team PS/G` = col_number(), Wins = col_number()))
+glimpse(NBA)
+
+library(readr)
+MVPs <- read_csv("NBA_MVPs.csv", 
+    col_types = cols(Age = col_number(), 
+        `FG%` = col_number(), MP = col_number(), 
+        PPG = col_number()))
+glimpse(MVPs)
+```
+
+Introduction: In this project, I will be exploring two datasets regarding the National Basketball Association (NBA). One of the datasets contains the Most Valuable Player (MVP) for each season from 1969-70 to 2018-19 and includes the player's name, age, average minutes played per game, average points per game, and overall field goal percentage. The other dataset contains the team the MVP player was on during the season the award was received. The NBA team stats include wins, losses, points scored per game, points allowed per game, and their conference standing following regular season play. The information from these datasets was obtained through Basketball-Reference.com. I'm an avid NBA fan so I decided to explore stat lines of the MVPs and the respective teams they played for during their MVP seasons. I expect to see a high correlation between conference standing with the presence of the MVP on the teams analyzed. I would also expect a higher MVP points scored per game to be associated with a higher team total for points scored per game.
+
+```{R}
+#Joining
+library(dplyr)
+library(tidyverse)
+Combined <- MVPs %>% full_join(NBA, by="Season")
+Combined
+```
+
+I decided to full join in order to not drop any cases in the data set and retain all of the original data. The datasets also match up by each having values in all 50 rows and not containing any N/As. Having data sets similiar in format was my reasoning for full joining the two datasets. 
+
+```{r}
+#Wrangling
+
+Combined %>% filter(Team=="LAL" & MVP=="Kareem Abdul-Jabbar") %>% 
+  arrange(desc(PPG)) %>% select(Team, MVP, PPG, Wins)
+
+With_Total_Games <- Combined %>% mutate("Total_Team_Games"=Wins+Losses)
+With_Win_Pct <- With_Total_Games %>% mutate("Win_Pct"=Wins/Total_Team_Games)
+
+With_Win_Pct %>% filter(Team=="BOS") %>% summarize(mean(Win_Pct), mean(PPG))
+
+renames <- With_Win_Pct %>% rename("Team_PSG"=`Team PS/G`, 
+                                   "Team_PAG"=`Team PA/G`, "Conference_Standing"=`Conference Standing`, "FG_Pct"=`FG%`)
+renames %>% group_by(Team) %>% summarize(mean(MP), mean(PPG))
+
+renames %>% group_by(MVP) %>% summarize(sd(Wins)) %>% na.omit()
+
+renames %>% filter(Team=="LAL") %>% summarize(mean(Wins), mean(Conference_Standing))
+
+renames %>% filter(MVP=="Michael Jordan") %>% summarize(mean_PPG=mean(PPG), mean_Age=mean(Age))
+
+renames %>% summarize(mean_age=mean(Age), mean_MP=mean(MP), mean_PPG=mean(PPG), mean_FG=mean(FG_Pct))
+
+renames %>% summarize(sd_age=sd(Age), sd_MP=sd(MP), sd_PPG=sd(PPG), sd_FG=sd(FG_Pct))
+
+not_tidy <-renames %>% summarize(mean_wins=mean(Wins), mean_losses=mean(Losses),
+        mean_TeamPSG=mean(Team_PSG), mean_TeamPAG=mean(Team_PAG),
+        mean_CS=mean(Conference_Standing), sd_wins=sd(Wins), sd_losses=sd(Losses),
+        sd_TeamPSG=sd(Team_PSG), sd_TeamPAG=sd(Team_PAG), 
+        sd_CS=sd(Conference_Standing))
+
+#Tidy: Rearranging Wide/Long
+not_tidy %>% pivot_longer(contains("_"), names_to="temp", values_to="value")%>%
+  separate(temp,c("stat","variable")) %>% 
+  pivot_wider(names_from = "stat", values_from = "value")
+
+renames %>% summarize(sd_wins=sd(Wins), sd_losses=sd(Losses), 
+              sd_TeamPSG=sd(Team_PSG), sd_TeamPAG=sd(Team_PAG),
+              sd_CS=sd(Conference_Standing))
+
+renames %>% group_by(MVP,Team) %>% summarize(median_PPG=median(PPG), median_TeamPSG=median(Team_PSG))
+
+Correlation <- renames %>% select(-MVP, -Team, -Total_Team_Games, -Season, - Champions)
+summary(Correlation)
+cor(Correlation)
+
+```
+
+I analyzed the LA Lakers wins when Kareem Abdul-Jabbar was the MVP and noticed that the Lakers had more wins when Kareem scored less points per game. I created a total team games played variable using mutate and then made a win percentage variable with mutate. The total team games variable was needed due to two seasons having less than 82 games played. I returned the mean win percentage of the Boston Celtics, a historically great team, along with the MVP points per game and was surprised to see the average points per game for Celtic MVPs to be below 25 PPG.  Of the MVPs who won it more than once, I was surprised that Karl Malone had such a large standard deviation in team wins of 19, especially in comparison to the other players. I returned the mean minutes played and mean points per game of the MVP and grouped by their Team and noticed that the highest minutes played was also the highest points per game. Michael Jordan had a higher mean age than the average of the league MVPs by 2 years and a higher points per game total by 5 points. The Lakers averaged 57 wins when one of their players won the MVP that season. I then used summarize_all to generate summary statistics for the combined data set. I used pivot_longer and pivot_wider to tidy mean and standard deviation descriptive statistics by combining the means into a single column and combining the standard deviations into a single column. I created a correlation table to analyze potential associations between the variables, but discovered that most the variables appeared to be independent.
+
+```{r}
+#Visualizing
+library(ggplot2)
+ggplot(data = renames, aes(x= Win_Pct, y = PPG, color = Conference_Standing)) +
+geom_point(size=3, alpha = .8) + ggtitle("NBA Team Wins and Conference Standing with MVP Points Per Game") + xlab("Win Percentage")  + 
+ylab("MVP Points Per Game")
+
+ggplot(renames, aes(x=Age, y=Win_Pct, fill=Champions)) + geom_bar(stat="summary",
+  fun.y="mean", position = "dodge", width = .7, color = "black") + 
+  theme(axis.text.x = element_text(angle=45, hjust=1), legend.position="right") + 
+  scale_fill_hue() + scale_y_continuous(breaks = seq(0,0.8, 0.1)) + 
+  ggtitle("NBA MVPs Age and Win Percentage with Championship Status") + 
+  xlab("Age") + ylab("Win Percentage")
+
+renames%>%select_if(is.numeric)%>%cor%>%as.data.frame%>%
+rownames_to_column%>%pivot_longer(-1)%>%
+ggplot(aes(rowname,name,fill=value))+geom_tile()+
+geom_text(aes(label=round(value,2)))+
+scale_fill_gradient(low = "red", high = "blue")+
+theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+xlab("")+ylab("") + ggtitle("Correlation Heat Map of Numeric Variables")
+```
+
+The first ggplot (scatterplot) shows that conference standings are worse when wins are lower for the season. It shows that higher wins occur when MVP average points per game are are between roughly 25 and 30, which shows that one player scoring all the points doesn't necessarily lead to victories. Lower wins and lower conference standings also appear to occur when the MVP has a higher average points per game, further indicating that one individual scoring a high volume of points doesn't always lead to wins and better conference standings.
+The second ggplot (bar chart) displays MVP ages and their corresponding average win percentages along with the conditions of whether or not that specific age won the championship. The data doesn't show any sort of correlation between MVP age and whether or not they were champions during their MVP season. The graph does show a slight postive correlation between champions and win percentage. In ages where their were both champions and none champions, win percentage is approximately 0.1 higher for the champions.
+The third plot is the correlation heat map of numeric variables. There are not many variables that have high correlation between the NBA players and their respective NBA teams. Wins, losses, and win percentage are highly correlated but that is expected due to wins being dependent on losses and vice versa. Win percentage is highly correlated because it is calculated by the number of wins.
+
+```{r}
+#Dimentionality Reduction
+library(cluster)
+renames
+renames %>% select_if(is.numeric)%>%scale%>%cor%>%round(2)
+NBA_pca <- renames%>%select(Age, MP, PPG)%>%scale%>%princomp
+NBA_pca
+summary(NBA_pca, loadings = T)
+eigvals<-NBA_pca$sdev^2
+varprop<-eigvals/sum(eigvals)
+ggplot()+geom_bar(aes(y=varprop,x=1:3),stat="identity")+xlab("")+geom_path(aes(y=varprop,x=1:3))+
+  geom_text(aes(x=1:3,y=varprop,label=round(varprop,2)),vjust=1,col="white",size=5)+
+  scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+
+  scale_x_continuous(breaks=1:3)
+
+pca1<- renames%>%mutate(PC1=NBA_pca$scores[,1], PC2=NBA_pca$scores[,2])
+ggplot(pca1, aes(PC1, PC2, color=Age)) + geom_point()
+```
+
+For my dataset, I chose to analyze the only three numeric variables: Age, MP, and PPG. This is because my variables do not have high correlations to one another. I chose these three due to there higher correlation to each other in relation to the other numeric variables. The variables were scaled and then a PCA was performed using princomp. I plotted a sceen plot and chose to use 2 PCs because the proportion of variance was greater than 80% for the first two principal components. A scatterplot was then made of the PCA scores. Based on the loadings, PC1 is a Age vs. MP and PPG axis. A higher score on PC1 means older age but worse minutes played and points per game and vice versa which was relflected by the age rows. This makes sense because older players typically play less and therefore are more likely to score less points per game. PC2 is a also representative of a Age vs. MP and PPG but at a lower differential coeffecient. As a result of the loadings, minutes played and points per game are more scattered throughout both PC1 and PC2.
+
+```{R}

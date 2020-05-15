@@ -1,0 +1,5 @@
+"0",""
+"0","With_Total_Games <- Combined %>% mutate(""Total_Team_Games""=Wins+Losses)"
+"0","With_Win_Pct <- With_Total_Games %>% mutate(""Win_Pct""=Wins/Total_Team_Games)"
+"0",""
+"0","With_Win_Pct %>% filter(Team==""BOS"") %>% summarize(mean(Win_Pct), mean(PPG))"

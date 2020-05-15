@@ -1,0 +1,204 @@
+---
+title: "Modeling, Testing, and Classification"
+author: "Austin Till"
+date: '2020-05-14'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(carData)
+library(dplyr)
+library(tidyverse)
+Wong <- read.csv("Wong.csv")
+head(Wong)
+```
+
+*The dataset I will be working with is Wong. The dataset contains statistical information on recovery of IQ after comas of different durations for 200 subjects for a total of 331 observations. The average number of measurements per patient is 1.7. The dataset contains patient ID numbers for each patient. It also contains a variable for the number of days post coma when IQs were measured. The duration of each patient's coma is another variable in the dataset. Characteristics of the patient include their age (in years) at the time of coma and their sex (male or female). Both a performance IQ and a verbal IQ were measured and recorded for each patient.*
+
+```{R}
+#MANOVA
+man1 <- manova(cbind(days,duration,age,piq,viq)~sex, data=Wong)
+summary(man1)
+```
+
+*For each response variable, the means of the groups are equal.*
+
+```{R}
+#Randomization Test
+Wong%>%group_by(sex)%>%
+  summarize(means=mean(piq))%>%summarize(`mean_diff:`=diff(means))
+
+rand_dist<-vector()
+
+for(i in 1:5000){
+new<-data.frame(piq=sample(Wong$piq),sex=Wong$sex) 
+rand_dist[i]<-mean(new[new$sex=="Male",]$piq)-
+              mean(new[new$sex=="Female",]$piq)
+}
+
+{hist(rand_dist,main="",ylab=""); abline(v = 2.07156,col="red")}
+
+
+mean(rand_dist>2.07156 | rand_dist< -2.07156)
+t.test(data=Wong,piq~sex)
+```
+
+*HO: Mean performance IQ is the same for males and females after comas. HA: Mean performance IQ is different for males and females after comas. The actual mean difference between males and females performance IQ scores was 2.07156. The probability of getting a mean difference as big as 2.07156 under the created null distribution of randomized data is 0.3022 (tw-tailed p-value). Since the p-value is not less than 0.05, we cannot reject the null hypothesis that mean performance IQ is the same for males and females after a coma.*
+
+```{R}
+#Linear Regression
+library(sandwich)
+library(lmtest)
+
+#Coefficient Estimates
+Wong$age_c <- Wong$age - mean(Wong$age)
+Wong$days_c <- Wong$days - mean(Wong$days)
+Wong$duration_c <- Wong$duration - mean(Wong$duration)
+fit <- lm(viq ~ sex*duration_c, data=Wong)
+summary(fit)
+
+#Regression Plot
+ggplot(Wong, aes(x=duration_c, y=viq,group=sex))+geom_point(aes(color=sex))+
+geom_smooth(method="lm",formula=y~1,se=F,fullrange=T,aes(color=sex))
+
+resids<-fit$residuals
+fitvals<-fit$fitted.values
+
+#Checking Assumptions
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col="red")
+bptest(fit)
+ggplot()+geom_histogram(aes(resids),bins=20)
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids), color='red')
+ks.test(resids, "pnorm", sd=sd(resids))
+
+#Normal-theory SEs
+summary(fit)$coef[,1:2]
+
+# Robust SEs
+coeftest(fit,vcov=vcovHC(fit))[,1:2]
+
+# R^2 Variability
+sum((fitvals-mean(Wong$viq))^2)/sum((Wong$viq-mean(Wong$viq))^2)
+
+#Bootstrapped SEs
+samp_distn<-replicate(5000, {
+boot_dat <- sample_frac(Wong, replace=T)
+fit <- lm(viq ~ sex*duration_c, data=boot_dat)
+coef(fit)
+})
+
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+```
+
+*Predicted verbal IQ for females who were in a coma for an average amount of days is 92.86. For people with an average duration of days in coma, males have a predicted verbal IQ that is 2.25 higher than females. Females show a decrease verbal IQ of 0.30 for every day increase in coma duration on average. The slope for duration of coma in days on verbal IQ is 0.31 higher for males compared to females. The linear relationship between verbal IQ, sex, and duration of coma appears violated. The histogram doesn't appear very normally distributed and many points aren't on the line of the Q-Q plot indicating that residuals may not be normally distributed. Equal variance appears to be violated as well due to the clustering of data points on the scatter plot. However, both the Breusch-Pagan and the KS test do not have significant p-values, meaning the distributions are normal. The corrected standard errors robust to violations of homoskedasticity get smaller potentially because normality was already met so the robust standard errors are smaller and more efficient. The proportion of variation in the response variable (verbal IQ) explained by the overall model is is 0.018. The bootstrapped standard errors were lower than both the normal standard errors and the robust standard errors.*
+
+```{R}
+#Logistic Regression
+
+#Interpreting Coefficients
+Wong$sex <- as.factor(Wong$sex)
+fit1 <- glm(sex~piq+viq+duration,data = Wong,family = binomial(link = "logit"))
+coeftest(fit1)
+exp(coef(fit1))
+
+#Confusion Matrix
+probs<-predict(fit1,type="response")
+table(predict=as.numeric(probs>.5),truth=Wong$sex)%>%addmargins
+260/331 #Accuracy
+260/260 #Sensitivity (TPR)
+0 #Specificity (TNR)
+260/331 #Precision (PPV)
+
+#Density Plot
+Wong$logit<-predict(fit1)
+Wong$outcome<-factor(Wong$sex,levels=c("Male","Female"))
+ggplot(Wong,aes(logit, fill=sex))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)
+
+#ROC Plot and AUC
+library(plotROC)
+library(pROC)
+ROCplot<-ggplot(Wong)+geom_roc(aes(d=sex,m=probs), n.cuts=0)+
+geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+ROCplot
+calc_auc(ROCplot)
+view(Wong)
+
+# GIVE IT PREDICTED PROBS AND TRUTH LABELS, RETURNS VARIOUS DIAGNOSTICS
+
+class_diag<-function(probs,truth){
+  
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  prediction<-ifelse(probs>.5,1,0)
+  acc=mean(truth==prediction)
+  sens=mean(prediction[truth==1]==1)
+  spec=mean(prediction[truth==0]==0)
+  ppv=mean(truth[prediction==1]==1)
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+
+Wong$outcome<-NULL
+class_diag(probs,Wong$sex)
+
+#10-fold CV
+set.seed(1234)
+k=10
+
+data<-Wong[sample(nrow(Wong)),] #randomly order rows
+folds<-cut(seq(1:nrow(Wong)),breaks=k,labels=F) #create folds
+
+diags<-NULL
+for(i in 1:k){
+  ## Create training and test sets
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  truth<-test$sex
+  
+  ## Train model on training set
+  fit<-glm(sex~piq+viq+duration,data=train,family="binomial")
+  probs<-predict(fit,newdata = test,type="response")
+  
+  ## Test model on test set (save all k results)
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+
+
+summarize_all(diags,mean)
+```
+
+*Odds of being a male for performance IQ=0, verbal IQ=0, and duration of coma=0 is 2.76. Controlling for verbal IQ and duration of coma, for every addition performance IQ point, odds of being a male is 0.99 times odds of being a female. Controlling for performance IQ and duration of coma, for every additional verbal IQ point, odds of being a male is 1.02 higher than odds of being a female. Controlling for performance IQ and verbal IQ, for every one day increase in duration of coma, odds of being a male are 1.01 odds of being a female. The model predicted that every observation was male. The accuracy, proportion of correctly classified cases, was 0.79, the sensitivity (true positive rate) was 1.00. This is the proportions of males correctly classified. The specificity (true negative rate) was 0.00, the proportion of females correctly classified. The precision (positive predictive value) was 0.79, the proportion of classified males that actually were males. The AUC is 0.58, the model of performance IQ, verbal IQ, and duration of coma are bad at predicting whether or not the patient is male or female. After performing a 10-fold CV, the out of sample accuracy is 0.79, sensitivity is 1, specificity is 0, ppv is 0.79, and AUC is 0.55. The AUC decreased from 0.58 to 0.55, not a large difference but the in-sample model was already a bad predictor of whether a patient was male or female.*
+
+```{R}
+#LASSO Regression
+library(glmnet)
+
+y <- as.matrix(Wong$sex)
+x <- model.matrix(sex~.,data = Wong)[,-1]
+
+cv <- cv.glmnet(x,y,family="binomial")
+lasso <- glmnet(x,y,family = "binomial",lambda=cv$lambda.1se)
+coef(lasso)
+```
+
+*None of the variables where retained from the LASSO regression. This means that none of the variables in this dataset are not significant predictors of sex.*

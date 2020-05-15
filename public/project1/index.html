@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Austin Till" />
+    <meta name="description" content="Describe your website">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Exploratory Data Analysis with Tidyverse Tools</title>
+    <meta name="generator" content="Hugo 0.70.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project1/">Exploratory Data Analysis with Tidyverse Tools</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          May 14, 2020
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ──────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.0     ✓ purrr   0.3.4
+## ✓ tibble  3.0.1     ✓ dplyr   0.8.5
+## ✓ tidyr   1.0.3     ✓ stringr 1.4.0
+## ✓ readr   1.3.1     ✓ forcats 0.5.0</code></pre>
+<pre><code>## ── Conflicts ─────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(readr)
+NBA &lt;- read_csv(&quot;NBA.csv&quot;, col_types = cols(`Conference Standing` = col_number(), 
+    Losses = col_number(), `Team PA/G` = col_number(), 
+    `Team PS/G` = col_number(), Wins = col_number()))
+glimpse(NBA)</code></pre>
+<pre><code>## Rows: 50
+## Columns: 8
+## $ Season                &lt;chr&gt; &quot;2018-19&quot;, &quot;2017-18&quot;, &quot;2016-17&quot;, &quot;2015-16&quot;, &quot;20…
+## $ Team                  &lt;chr&gt; &quot;MIL&quot;, &quot;HOU&quot;, &quot;OKC&quot;, &quot;GSW&quot;, &quot;GSW&quot;, &quot;OKC&quot;, &quot;MIA&quot;…
+## $ Wins                  &lt;dbl&gt; 60, 65, 47, 73, 67, 59, 66, 46, 62, 61, 66, 57,…
+## $ Losses                &lt;dbl&gt; 22, 17, 35, 9, 15, 23, 16, 20, 20, 21, 16, 25, …
+## $ `Team PS/G`           &lt;dbl&gt; 118.1, 112.4, 106.6, 114.9, 110.0, 106.2, 102.9…
+## $ `Team PA/G`           &lt;dbl&gt; 109.3, 103.9, 105.8, 104.1, 99.9, 99.8, 95.0, 9…
+## $ `Conference Standing` &lt;dbl&gt; 1, 1, 6, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1,…
+## $ Champions             &lt;chr&gt; &quot;No&quot;, &quot;No&quot;, &quot;No&quot;, &quot;No&quot;, &quot;Yes&quot;, &quot;No&quot;, &quot;Yes&quot;, &quot;Ye…</code></pre>
+<pre class="r"><code>library(readr)
+MVPs &lt;- read_csv(&quot;NBA_MVPs.csv&quot;, 
+    col_types = cols(Age = col_number(), 
+        `FG%` = col_number(), MP = col_number(), 
+        PPG = col_number()))
+glimpse(MVPs)</code></pre>
+<pre><code>## Rows: 50
+## Columns: 6
+## $ Season &lt;chr&gt; &quot;2018-19&quot;, &quot;2017-18&quot;, &quot;2016-17&quot;, &quot;2015-16&quot;, &quot;2014-15&quot;, &quot;2013-1…
+## $ MVP    &lt;chr&gt; &quot;Giannis Antetokounmpo&quot;, &quot;James Harden&quot;, &quot;Russell Westbrook&quot;, …
+## $ Age    &lt;dbl&gt; 24, 28, 28, 27, 26, 25, 28, 27, 22, 25, 24, 29, 28, 31, 30, 27…
+## $ MP     &lt;dbl&gt; 32.8, 35.4, 34.6, 34.2, 32.7, 38.5, 37.9, 37.5, 37.4, 39.0, 37…
+## $ PPG    &lt;dbl&gt; 27.7, 30.4, 31.6, 30.1, 23.8, 32.0, 26.8, 27.1, 25.0, 29.7, 28…
+## $ `FG%`  &lt;dbl&gt; 0.578, 0.449, 0.425, 0.504, 0.487, 0.503, 0.565, 0.531, 0.445,…</code></pre>
+<p>Introduction: In this project, I will be exploring two datasets regarding the National Basketball Association (NBA). One of the datasets contains the Most Valuable Player (MVP) for each season from 1969-70 to 2018-19 and includes the player’s name, age, average minutes played per game, average points per game, and overall field goal percentage. The other dataset contains the team the MVP player was on during the season the award was received. The NBA team stats include wins, losses, points scored per game, points allowed per game, and their conference standing following regular season play. The information from these datasets was obtained through Basketball-Reference.com. I’m an avid NBA fan so I decided to explore stat lines of the MVPs and the respective teams they played for during their MVP seasons. I expect to see a high correlation between conference standing with the presence of the MVP on the teams analyzed. I would also expect a higher MVP points scored per game to be associated with a higher team total for points scored per game.</p>
+<pre class="r"><code>#Joining
+library(dplyr)
+library(tidyverse)
+Combined &lt;- MVPs %&gt;% full_join(NBA, by=&quot;Season&quot;)
+Combined</code></pre>
+<pre><code>## # A tibble: 50 x 13
+##    Season MVP     Age    MP   PPG `FG%` Team   Wins Losses `Team PS/G`
+##    &lt;chr&gt;  &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;
+##  1 2018-… Gian…    24  32.8  27.7 0.578 MIL      60     22       118. 
+##  2 2017-… Jame…    28  35.4  30.4 0.449 HOU      65     17       112. 
+##  3 2016-… Russ…    28  34.6  31.6 0.425 OKC      47     35       107. 
+##  4 2015-… Step…    27  34.2  30.1 0.504 GSW      73      9       115. 
+##  5 2014-… Step…    26  32.7  23.8 0.487 GSW      67     15       110  
+##  6 2013-… Kevi…    25  38.5  32   0.503 OKC      59     23       106. 
+##  7 2012-… LeBr…    28  37.9  26.8 0.565 MIA      66     16       103. 
+##  8 2011-… LeBr…    27  37.5  27.1 0.531 MIA      46     20        98.5
+##  9 2010-… Derr…    22  37.4  25   0.445 CHI      62     20        98.6
+## 10 2009-… LeBr…    25  39    29.7 0.503 CLE      61     21       102. 
+## # … with 40 more rows, and 3 more variables: `Team PA/G` &lt;dbl&gt;, `Conference
+## #   Standing` &lt;dbl&gt;, Champions &lt;chr&gt;</code></pre>
+<p>I decided to full join in order to not drop any cases in the data set and retain all of the original data. The datasets also match up by each having values in all 50 rows and not containing any N/As. Having data sets similiar in format was my reasoning for full joining the two datasets.</p>
+<pre class="r"><code>#Wrangling
+
+Combined %&gt;% filter(Team==&quot;LAL&quot; &amp; MVP==&quot;Kareem Abdul-Jabbar&quot;) %&gt;% 
+  arrange(desc(PPG)) %&gt;% select(Team, MVP, PPG, Wins)</code></pre>
+<pre><code>## # A tibble: 3 x 4
+##   Team  MVP                   PPG  Wins
+##   &lt;chr&gt; &lt;chr&gt;               &lt;dbl&gt; &lt;dbl&gt;
+## 1 LAL   Kareem Abdul-Jabbar  27.7    40
+## 2 LAL   Kareem Abdul-Jabbar  26.2    53
+## 3 LAL   Kareem Abdul-Jabbar  24.8    60</code></pre>
+<pre class="r"><code>With_Total_Games &lt;- Combined %&gt;% mutate(&quot;Total_Team_Games&quot;=Wins+Losses)
+With_Win_Pct &lt;- With_Total_Games %&gt;% mutate(&quot;Win_Pct&quot;=Wins/Total_Team_Games)
+
+With_Win_Pct %&gt;% filter(Team==&quot;BOS&quot;) %&gt;% summarize(mean(Win_Pct), mean(PPG))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   `mean(Win_Pct)` `mean(PPG)`
+##             &lt;dbl&gt;       &lt;dbl&gt;
+## 1           0.793        24.8</code></pre>
+<pre class="r"><code>renames &lt;- With_Win_Pct %&gt;% rename(&quot;Team_PSG&quot;=`Team PS/G`, 
+                                   &quot;Team_PAG&quot;=`Team PA/G`, &quot;Conference_Standing&quot;=`Conference Standing`, &quot;FG_Pct&quot;=`FG%`)
+renames %&gt;% group_by(Team) %&gt;% summarize(mean(MP), mean(PPG))</code></pre>
+<pre><code>## # A tibble: 18 x 3
+##    Team  `mean(MP)` `mean(PPG)`
+##    &lt;chr&gt;      &lt;dbl&gt;       &lt;dbl&gt;
+##  1 BOS         39.4        24.8
+##  2 BUF         43.2        34.5
+##  3 CHI         38.4        30.1
+##  4 CLE         38.4        29.0
+##  5 DAL         36.2        24.6
+##  6 GSW         33.4        27.0
+##  7 HOU         39.9        28.4
+##  8 LAL         38.3        25.7
+##  9 MIA         37.7        27.0
+## 10 MIL         40.2        30.3
+## 11 MIN         39.4        24.2
+## 12 NYK         38.1        21.7
+## 13 OKC         36.6        31.8
+## 14 PHI         38.2        26.7
+## 15 PHO         35.8        20.0
+## 16 POR         33.3        18.9
+## 17 SAS         39.3        25.5
+## 18 UTA         37          25.6</code></pre>
+<pre class="r"><code>renames %&gt;% group_by(MVP) %&gt;% summarize(sd(Wins)) %&gt;% na.omit()</code></pre>
+<pre><code>## # A tibble: 10 x 2
+##    MVP                 `sd(Wins)`
+##    &lt;chr&gt;                    &lt;dbl&gt;
+##  1 Kareem Abdul-Jabbar       9.33
+##  2 Karl Malone              19.1 
+##  3 Larry Bird                2.65
+##  4 LeBron James              9.46
+##  5 Magic Johnson             4.16
+##  6 Michael Jordan            8.20
+##  7 Moses Malone             10.7 
+##  8 Stephen Curry             4.24
+##  9 Steve Nash                5.66
+## 10 Tim Duncan                1.41</code></pre>
+<pre class="r"><code>renames %&gt;% filter(Team==&quot;LAL&quot;) %&gt;% summarize(mean(Wins), mean(Conference_Standing))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   `mean(Wins)` `mean(Conference_Standing)`
+##          &lt;dbl&gt;                       &lt;dbl&gt;
+## 1         57.8                        1.62</code></pre>
+<pre class="r"><code>renames %&gt;% filter(MVP==&quot;Michael Jordan&quot;) %&gt;% summarize(mean_PPG=mean(PPG), mean_Age=mean(Age))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   mean_PPG mean_Age
+##      &lt;dbl&gt;    &lt;dbl&gt;
+## 1     31.1       29</code></pre>
+<pre class="r"><code>renames %&gt;% summarize(mean_age=mean(Age), mean_MP=mean(MP), mean_PPG=mean(PPG), mean_FG=mean(FG_Pct))</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   mean_age mean_MP mean_PPG mean_FG
+##      &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+## 1     27.4    38.2     26.8   0.513</code></pre>
+<pre class="r"><code>renames %&gt;% summarize(sd_age=sd(Age), sd_MP=sd(MP), sd_PPG=sd(PPG), sd_FG=sd(FG_Pct))</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   sd_age sd_MP sd_PPG  sd_FG
+##    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1   2.94  2.70   4.15 0.0392</code></pre>
+<pre class="r"><code>not_tidy &lt;-renames %&gt;% summarize(mean_wins=mean(Wins), mean_losses=mean(Losses),
+        mean_TeamPSG=mean(Team_PSG), mean_TeamPAG=mean(Team_PAG),
+        mean_CS=mean(Conference_Standing), sd_wins=sd(Wins), sd_losses=sd(Losses),
+        sd_TeamPSG=sd(Team_PSG), sd_TeamPAG=sd(Team_PAG), 
+        sd_CS=sd(Conference_Standing))
+
+#Tidy: Rearranging Wide/Long
+not_tidy %&gt;% pivot_longer(contains(&quot;_&quot;), names_to=&quot;temp&quot;, values_to=&quot;value&quot;)%&gt;%
+  separate(temp,c(&quot;stat&quot;,&quot;variable&quot;)) %&gt;% 
+  pivot_wider(names_from = &quot;stat&quot;, values_from = &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 5 x 3
+##   variable   mean    sd
+##   &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;
+## 1 wins      59.5   7.67
+## 2 losses    21.5   6.76
+## 3 TeamPSG  107.    6.81
+## 4 TeamPAG  100.    6.57
+## 5 CS         1.62  1.31</code></pre>
+<pre class="r"><code>renames %&gt;% summarize(sd_wins=sd(Wins), sd_losses=sd(Losses), 
+              sd_TeamPSG=sd(Team_PSG), sd_TeamPAG=sd(Team_PAG),
+              sd_CS=sd(Conference_Standing))</code></pre>
+<pre><code>## # A tibble: 1 x 5
+##   sd_wins sd_losses sd_TeamPSG sd_TeamPAG sd_CS
+##     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;
+## 1    7.67      6.76       6.81       6.57  1.31</code></pre>
+<pre class="r"><code>renames %&gt;% group_by(MVP,Team) %&gt;% summarize(median_PPG=median(PPG), median_TeamPSG=median(Team_PSG))</code></pre>
+<pre><code>## # A tibble: 31 x 4
+## # Groups:   MVP [28]
+##    MVP                   Team  median_PPG median_TeamPSG
+##    &lt;chr&gt;                 &lt;chr&gt;      &lt;dbl&gt;          &lt;dbl&gt;
+##  1 Allen Iverson         PHI         31.1           94.7
+##  2 Bill Walton           POR         18.9          108. 
+##  3 Bob McAdoo            BUF         34.5          108. 
+##  4 Charles Barkley       PHO         25.6          113. 
+##  5 Dave Cowens           BOS         20.5          113. 
+##  6 David Robinson        SAS         27.6          107. 
+##  7 Derrick Rose          CHI         25             98.6
+##  8 Dirk Nowitzki         DAL         24.6          100  
+##  9 Giannis Antetokounmpo MIL         27.7          118. 
+## 10 Hakeem Olajuwon       HOU         27.3          101. 
+## # … with 21 more rows</code></pre>
+<pre class="r"><code>Correlation &lt;- renames %&gt;% select(-MVP, -Team, -Total_Team_Games, -Season, - Champions)
+summary(Correlation)</code></pre>
+<pre><code>##       Age              MP             PPG            FG_Pct      
+##  Min.   :22.00   Min.   :32.70   Min.   :15.50   Min.   :0.4200  
+##  1st Qu.:25.00   1st Qu.:36.85   1st Qu.:24.27   1st Qu.:0.4953  
+##  Median :27.00   Median :38.00   Median :27.05   Median :0.5120  
+##  Mean   :27.42   Mean   :38.21   Mean   :26.82   Mean   :0.5128  
+##  3rd Qu.:29.00   3rd Qu.:39.88   3rd Qu.:30.00   3rd Qu.:0.5308  
+##  Max.   :35.00   Max.   :44.20   Max.   :35.00   Max.   :0.6040  
+##       Wins           Losses         Team_PSG        Team_PAG     
+##  Min.   :37.00   Min.   : 9.00   Min.   : 93.3   Min.   : 86.80  
+##  1st Qu.:57.25   1st Qu.:17.00   1st Qu.:102.3   1st Qu.: 94.47  
+##  Median :61.00   Median :20.00   Median :107.8   Median :102.20  
+##  Mean   :59.54   Mean   :21.46   Mean   :107.3   Mean   :100.45  
+##  3rd Qu.:65.00   3rd Qu.:24.00   3rd Qu.:112.6   3rd Qu.:105.60  
+##  Max.   :73.00   Max.   :42.00   Max.   :118.4   Max.   :112.40  
+##  Conference_Standing    Win_Pct      
+##  Min.   :1.00        Min.   :0.4878  
+##  1st Qu.:1.00        1st Qu.:0.7073  
+##  Median :1.00        Median :0.7470  
+##  Mean   :1.62        Mean   :0.7350  
+##  3rd Qu.:2.00        3rd Qu.:0.7927  
+##  Max.   :6.00        Max.   :0.8902</code></pre>
+<pre class="r"><code>cor(Correlation)</code></pre>
+<pre><code>##                               Age          MP         PPG        FG_Pct
+## Age                  1.0000000000 -0.28469052 -0.26108076 -0.0005992808
+## MP                  -0.2846905181  1.00000000  0.41366503  0.1065038853
+## PPG                 -0.2610807612  0.41366503  1.00000000  0.0959143157
+## FG_Pct              -0.0005992808  0.10650389  0.09591432  1.0000000000
+## Wins                -0.0338608283 -0.23392621 -0.05824436 -0.0026513484
+## Losses              -0.2032381546  0.30721582  0.14062611  0.0301752085
+## Team_PSG            -0.1309825819 -0.18902613 -0.05973691  0.2870198594
+## Team_PAG            -0.1623413407 -0.08114979 -0.04782080  0.2570064001
+## Conference_Standing -0.1011326778  0.23262760  0.27200120 -0.0502207055
+## Win_Pct              0.1428596727 -0.30029222 -0.12330867 -0.0244549200
+##                             Wins      Losses    Team_PSG    Team_PAG
+## Age                 -0.033860828 -0.20323815 -0.13098258 -0.16234134
+## MP                  -0.233926208  0.30721582 -0.18902613 -0.08114979
+## PPG                 -0.058244363  0.14062611 -0.05973691 -0.04782080
+## FG_Pct              -0.002651348  0.03017521  0.28701986  0.25700640
+## Wins                 1.000000000 -0.76502220  0.28489376 -0.04837175
+## Losses              -0.765022201  1.00000000 -0.06904251  0.30888040
+## Team_PSG             0.284893759 -0.06904251  1.00000000  0.90990167
+## Team_PAG            -0.048371752  0.30888040  0.90990167  1.00000000
+## Conference_Standing -0.705839336  0.76109126 -0.04785453  0.26252412
+## Win_Pct              0.877851060 -0.97989368  0.13994413 -0.24395156
+##                     Conference_Standing     Win_Pct
+## Age                         -0.10113268  0.14285967
+## MP                           0.23262760 -0.30029222
+## PPG                          0.27200120 -0.12330867
+## FG_Pct                      -0.05022071 -0.02445492
+## Wins                        -0.70583934  0.87785106
+## Losses                       0.76109126 -0.97989368
+## Team_PSG                    -0.04785453  0.13994413
+## Team_PAG                     0.26252412 -0.24395156
+## Conference_Standing          1.00000000 -0.78376031
+## Win_Pct                     -0.78376031  1.00000000</code></pre>
+<p>I analyzed the LA Lakers wins when Kareem Abdul-Jabbar was the MVP and noticed that the Lakers had more wins when Kareem scored less points per game. I created a total team games played variable using mutate and then made a win percentage variable with mutate. The total team games variable was needed due to two seasons having less than 82 games played. I returned the mean win percentage of the Boston Celtics, a historically great team, along with the MVP points per game and was surprised to see the average points per game for Celtic MVPs to be below 25 PPG. Of the MVPs who won it more than once, I was surprised that Karl Malone had such a large standard deviation in team wins of 19, especially in comparison to the other players. I returned the mean minutes played and mean points per game of the MVP and grouped by their Team and noticed that the highest minutes played was also the highest points per game. Michael Jordan had a higher mean age than the average of the league MVPs by 2 years and a higher points per game total by 5 points. The Lakers averaged 57 wins when one of their players won the MVP that season. I then used summarize_all to generate summary statistics for the combined data set. I used pivot_longer and pivot_wider to tidy mean and standard deviation descriptive statistics by combining the means into a single column and combining the standard deviations into a single column. I created a correlation table to analyze potential associations between the variables, but discovered that most the variables appeared to be independent.</p>
+<pre class="r"><code>#Visualizing
+library(ggplot2)
+ggplot(data = renames, aes(x= Win_Pct, y = PPG, color = Conference_Standing)) +
+geom_point(size=3, alpha = .8) + ggtitle(&quot;NBA Team Wins and Conference Standing with MVP Points Per Game&quot;) + xlab(&quot;Win Percentage&quot;)  + 
+ylab(&quot;MVP Points Per Game&quot;)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(renames, aes(x=Age, y=Win_Pct, fill=Champions)) + geom_bar(stat=&quot;summary&quot;,
+  fun.y=&quot;mean&quot;, position = &quot;dodge&quot;, width = .7, color = &quot;black&quot;) + 
+  theme(axis.text.x = element_text(angle=45, hjust=1), legend.position=&quot;right&quot;) + 
+  scale_fill_hue() + scale_y_continuous(breaks = seq(0,0.8, 0.1)) + 
+  ggtitle(&quot;NBA MVPs Age and Win Percentage with Championship Status&quot;) + 
+  xlab(&quot;Age&quot;) + ylab(&quot;Win Percentage&quot;)</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: fun.y</code></pre>
+<pre><code>## No summary function supplied, defaulting to `mean_se()`</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code>renames%&gt;%select_if(is.numeric)%&gt;%cor%&gt;%as.data.frame%&gt;%
+rownames_to_column%&gt;%pivot_longer(-1)%&gt;%
+ggplot(aes(rowname,name,fill=value))+geom_tile()+
+geom_text(aes(label=round(value,2)))+
+scale_fill_gradient(low = &quot;red&quot;, high = &quot;blue&quot;)+
+theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+xlab(&quot;&quot;)+ylab(&quot;&quot;) + ggtitle(&quot;Correlation Heat Map of Numeric Variables&quot;)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-4-3.png" width="672" /></p>
+<p>The first ggplot (scatterplot) shows that conference standings are worse when wins are lower for the season. It shows that higher wins occur when MVP average points per game are are between roughly 25 and 30, which shows that one player scoring all the points doesn’t necessarily lead to victories. Lower wins and lower conference standings also appear to occur when the MVP has a higher average points per game, further indicating that one individual scoring a high volume of points doesn’t always lead to wins and better conference standings.
+The second ggplot (bar chart) displays MVP ages and their corresponding average win percentages along with the conditions of whether or not that specific age won the championship. The data doesn’t show any sort of correlation between MVP age and whether or not they were champions during their MVP season. The graph does show a slight postive correlation between champions and win percentage. In ages where their were both champions and none champions, win percentage is approximately 0.1 higher for the champions.
+The third plot is the correlation heat map of numeric variables. There are not many variables that have high correlation between the NBA players and their respective NBA teams. Wins, losses, and win percentage are highly correlated but that is expected due to wins being dependent on losses and vice versa. Win percentage is highly correlated because it is calculated by the number of wins.</p>
+<pre class="r"><code>#Dimentionality Reduction
+library(cluster)
+renames</code></pre>
+<pre><code>## # A tibble: 50 x 15
+##    Season MVP     Age    MP   PPG FG_Pct Team   Wins Losses Team_PSG Team_PAG
+##    &lt;chr&gt;  &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##  1 2018-… Gian…    24  32.8  27.7  0.578 MIL      60     22    118.     109. 
+##  2 2017-… Jame…    28  35.4  30.4  0.449 HOU      65     17    112.     104. 
+##  3 2016-… Russ…    28  34.6  31.6  0.425 OKC      47     35    107.     106. 
+##  4 2015-… Step…    27  34.2  30.1  0.504 GSW      73      9    115.     104. 
+##  5 2014-… Step…    26  32.7  23.8  0.487 GSW      67     15    110       99.9
+##  6 2013-… Kevi…    25  38.5  32    0.503 OKC      59     23    106.      99.8
+##  7 2012-… LeBr…    28  37.9  26.8  0.565 MIA      66     16    103.      95  
+##  8 2011-… LeBr…    27  37.5  27.1  0.531 MIA      46     20     98.5     92.5
+##  9 2010-… Derr…    22  37.4  25    0.445 CHI      62     20     98.6     91.3
+## 10 2009-… LeBr…    25  39    29.7  0.503 CLE      61     21    102.      95.6
+## # … with 40 more rows, and 4 more variables: Conference_Standing &lt;dbl&gt;,
+## #   Champions &lt;chr&gt;, Total_Team_Games &lt;dbl&gt;, Win_Pct &lt;dbl&gt;</code></pre>
+<pre class="r"><code>renames %&gt;% select_if(is.numeric)%&gt;%scale%&gt;%cor%&gt;%round(2)</code></pre>
+<pre><code>##                       Age    MP   PPG FG_Pct  Wins Losses Team_PSG Team_PAG
+## Age                  1.00 -0.28 -0.26   0.00 -0.03  -0.20    -0.13    -0.16
+## MP                  -0.28  1.00  0.41   0.11 -0.23   0.31    -0.19    -0.08
+## PPG                 -0.26  0.41  1.00   0.10 -0.06   0.14    -0.06    -0.05
+## FG_Pct               0.00  0.11  0.10   1.00  0.00   0.03     0.29     0.26
+## Wins                -0.03 -0.23 -0.06   0.00  1.00  -0.77     0.28    -0.05
+## Losses              -0.20  0.31  0.14   0.03 -0.77   1.00    -0.07     0.31
+## Team_PSG            -0.13 -0.19 -0.06   0.29  0.28  -0.07     1.00     0.91
+## Team_PAG            -0.16 -0.08 -0.05   0.26 -0.05   0.31     0.91     1.00
+## Conference_Standing -0.10  0.23  0.27  -0.05 -0.71   0.76    -0.05     0.26
+## Total_Team_Games    -0.33  0.06  0.10   0.04  0.50   0.18     0.34     0.34
+## Win_Pct              0.14 -0.30 -0.12  -0.02  0.88  -0.98     0.14    -0.24
+##                     Conference_Standing Total_Team_Games Win_Pct
+## Age                               -0.10            -0.33    0.14
+## MP                                 0.23             0.06   -0.30
+## PPG                                0.27             0.10   -0.12
+## FG_Pct                            -0.05             0.04   -0.02
+## Wins                              -0.71             0.50    0.88
+## Losses                             0.76             0.18   -0.98
+## Team_PSG                          -0.05             0.34    0.14
+## Team_PAG                           0.26             0.34   -0.24
+## Conference_Standing                1.00            -0.05   -0.78
+## Total_Team_Games                  -0.05             1.00    0.02
+## Win_Pct                           -0.78             0.02    1.00</code></pre>
+<pre class="r"><code>NBA_pca &lt;- renames%&gt;%select(Age, MP, PPG)%&gt;%scale%&gt;%princomp
+NBA_pca</code></pre>
+<pre><code>## Call:
+## princomp(x = .)
+## 
+## Standard deviations:
+##    Comp.1    Comp.2    Comp.3 
+## 1.2695894 0.8687326 0.7572625 
+## 
+##  3  variables and  50 observations.</code></pre>
+<pre class="r"><code>summary(NBA_pca, loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2    Comp.3
+## Standard deviation     1.2695894 0.8687326 0.7572625
+## Proportion of Variance 0.5482507 0.2566994 0.1950498
+## Cumulative Proportion  0.5482507 0.8049502 1.0000000
+## 
+## Loadings:
+##     Comp.1 Comp.2 Comp.3
+## Age  0.514  0.855       
+## MP  -0.612  0.308  0.728
+## PPG -0.601  0.417 -0.682</code></pre>
+<pre class="r"><code>eigvals&lt;-NBA_pca$sdev^2
+varprop&lt;-eigvals/sum(eigvals)
+ggplot()+geom_bar(aes(y=varprop,x=1:3),stat=&quot;identity&quot;)+xlab(&quot;&quot;)+geom_path(aes(y=varprop,x=1:3))+
+  geom_text(aes(x=1:3,y=varprop,label=round(varprop,2)),vjust=1,col=&quot;white&quot;,size=5)+
+  scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+
+  scale_x_continuous(breaks=1:3)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>pca1&lt;- renames%&gt;%mutate(PC1=NBA_pca$scores[,1], PC2=NBA_pca$scores[,2])
+ggplot(pca1, aes(PC1, PC2, color=Age)) + geom_point()</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<p>For my dataset, I chose to analyze the only three numeric variables: Age, MP, and PPG. This is because my variables do not have high correlations to one another. I chose these three due to there higher correlation to each other in relation to the other numeric variables. The variables were scaled and then a PCA was performed using princomp. I plotted a sceen plot and chose to use 2 PCs because the proportion of variance was greater than 80% for the first two principal components. A scatterplot was then made of the PCA scores. Based on the loadings, PC1 is a Age vs. MP and PPG axis. A higher score on PC1 means older age but worse minutes played and points per game and vice versa which was relflected by the age rows. This makes sense because older players typically play less and therefore are more likely to score less points per game. PC2 is a also representative of a Age vs. MP and PPG but at a lower differential coeffecient. As a result of the loadings, minutes played and points per game are more scattered throughout both PC1 and PC2.</p>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
