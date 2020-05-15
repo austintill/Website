@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1589573989005.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "CB7701E6",
+    "lastKnownWriteTime" : 140408974312976,
+    "last_content_update" : 1589573989005,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "C214BED1",
+        "caption" : "TitanicSurvival",
+        "contentUrl" : "grid_resource/gridviewer.html?env=package%3AcarData&obj=TitanicSurvival&cache_key=C214BED1",
+        "displayedObservations" : 1309,
+        "environment" : "package:carData",
+        "expression" : "TitanicSurvival",
+        "object" : "TitanicSurvival",
+        "preview" : 0,
+        "totalObservations" : 1309,
+        "variables" : 4
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
